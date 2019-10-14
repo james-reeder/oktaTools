@@ -66,7 +66,7 @@ for user in userslist:
     userListNoKeys.append(rowData)
 
 # Write to CSV
-with open('allOktaUsers.csv', 'w') as csvFile:
+with open('allOktaUsers.csv', 'w', newline='') as csvFile:
     writer = csv.writer(csvFile)
     writer.writerow(masterProfileHeadersList)
     for user in userListNoKeys:
