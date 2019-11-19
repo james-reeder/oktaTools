@@ -1,0 +1,11 @@
+<config>
+  <oktaUrl>https://test.oktapreview.com</oktaUrl>
+  <apiToken>000000000000</apiToken>
+  <csvLocation>allOktaUsers.csv</csvLocation>
+  <mappings>
+	<mapping>
+		<csvHeader>id</csvHeader>
+		<oktaAttribute>employeeNumber</oktaAttribute>
+	</mapping>
+  </mappings>
+</config>
