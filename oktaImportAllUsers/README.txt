@@ -12,7 +12,7 @@ README.txt
 
 Verison 2:
 Added updating users
-Added Validity Checks
+Added validity checks
 
 **********************************************
 
@@ -134,7 +134,7 @@ The main config should look something like below once you have place the appropr
 </config>
 
 [STEP 4]
-Run the appropriate scripts in the command line
+Run the script in the command line
 
 When in current working directory:
 python <scriptFileName>.py 
