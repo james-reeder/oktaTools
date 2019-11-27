@@ -30,7 +30,8 @@ will display the following contents:
 		*if the csv file could not be found
 		*if the config was set incorrectly
 		*if any mappings were set incorrectly
-		
+
+You can turn off logging by setting logResults in the config.xml to 'false'.
 
 ========
 Mappings
@@ -66,12 +67,12 @@ Any rows that do not meet this requirement are ignored.
 =============
 Empty Columns
 =============
-If a column is empty then it is not included in the user that is created. 
+If a column is empty then it is not included in the user that is created.
 
 =============
 Booleans
 =============
-If you have columns that contain a capitalised boolean such as 'TRUE' or 'FALSE'. The value of the column will be changes to 'true' or 'false' respectively.
+If you have columns that contain a capitalised boolean such as 'TRUE' or 'FALSE'. The value of the column will be changed to 'true' or 'false' respectively.
 
 
 		//// Setting up \\\\
@@ -125,6 +126,7 @@ The main config should look something like below once you have place the appropr
   <oktaUrl>https://test.oktapreview.com</oktaUrl>
   <apiToken>000000000000</apiToken>
   <csvLocation>allOktaUsers.csv</csvLocation>
+  <logResults>true</logResults>
   <mappings>
 	<mapping>
 		<csvHeader>id</csvHeader>
@@ -134,7 +136,7 @@ The main config should look something like below once you have place the appropr
 </config>
 
 [STEP 4]
-Run the script in the command line
+Run the script in the command line.
 
 When in current working directory:
 python <scriptFileName>.py 

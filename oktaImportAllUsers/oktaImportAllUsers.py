@@ -6,14 +6,15 @@ import xml.etree.ElementTree as tree
 import os
 import datetime as date
 	
-
+logBool = None
 def log(s):
-	print(s)
-	today = date.datetime.today()
-	filename = str(today.day)+str(today.month)+str(today.year)+".txt"
-	f = open(filename, "a")
-	f.write("\n"+s)
-	f.close()
+	if logBool == None or str(logBool).lower() == "true":
+		print(s)
+		today = date.datetime.today()
+		filename = str(today.day)+str(today.month)+str(today.year)+".txt"
+		f = open(filename, "a")
+		f.write("\n"+s)
+		f.close()
 
 def getConfigValue(s):
 	root = tree.parse("config.xml").getroot();
@@ -40,11 +41,16 @@ def getMappings():
 	return mappings
 				
 def checkGlobalValues():
+	global logBool
 	if fileLocation == None:
 		log("file location could not be found in config.")
 		return False
 	elif fileCheck() == False:
 		log("no file could be found at this location:"+fileLocation+".")
+		return False
+	elif logBool == None:
+		logBool = True
+		log("log results could not be found in config.")
 		return False
 	elif oktaUrl == None:
 		log("okta url could not be found in config.")
@@ -114,7 +120,9 @@ def replaceHeadersWithMappings():
 				
 def checkValid(headers, row):
 	i=0
-	for column in row:
+	if "login" not in headers or "firstName" not in headers or "email" not in headers or "lastName" not in headers:
+		return False
+	for column in row:#remove , column
 		if headers[i] == "login":
 			if column == "" or column == None or column == ",":
 				return False
@@ -215,6 +223,7 @@ def userExist(baseurl, apitoken, profile):
 ########Main#########
 	
 #global
+logBool = getConfigValue("logResults")
 log("_____Starting Program ("+str(date.datetime.now())+")_____")
 
 fileLocation = getConfigValue("csvLocation")
@@ -226,6 +235,7 @@ mappings = []
 check =checkGlobalValues()
 	
 if not check:
+	logBool = True
 	log("Stopping as config file has not been set correctly")
 	raiseConfigError()
 else:
