@@ -9,6 +9,11 @@ The following folder should include:
 config.xml
 oktaImportAllUsers.py
 README.txt
+
+Verison 2:
+Added updating users
+Added Validity Checks
+
 **********************************************
 
 		//// Tool Notes \\\\
@@ -48,7 +53,25 @@ CSV File Location
 For the csv location in the config, you can you a cannoical or absolute path as you please. The log file will also print the absolute path if the file could not be found.
 
 
+===============
+Validity Checks
+===============
+The importer will now ensure that each user create meets the basic standard Okta user by checking that each users has the following attributes:
+	*Login
+	*Email
+	*FirstName
+	*LastName
+Any rows that do not meet this requirement are ignored. 
 
+=============
+Empty Columns
+=============
+If a column is empty then it is not included in the user that is created. 
+
+=============
+Booleans
+=============
+If you have columns that contain a capitalised boolean such as 'TRUE' or 'FALSE'. The value of the column will be changes to 'true' or 'false' respectively.
 
 
 		//// Setting up \\\\
