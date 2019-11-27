@@ -2,6 +2,7 @@
   <oktaUrl>https://test.oktapreview.com</oktaUrl>
   <apiToken>000000000000</apiToken>
   <csvLocation>allOktaUsers.csv</csvLocation>
+  <logResults>true</logResults>
   <mappings>
 	<mapping>
 		<csvHeader>id</csvHeader>
