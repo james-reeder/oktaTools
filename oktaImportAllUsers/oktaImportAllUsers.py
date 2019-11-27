@@ -1,6 +1,5 @@
 # Import Required Modules
 import requests
-import pprint
 import json
 import csv
 import xml.etree.ElementTree as tree
@@ -74,6 +73,15 @@ def getHeaders():
 		csv_reader = csv.reader(csvFile, delimiter=',')
 		line = 0;
 		for row in csv_reader:
+			row_new = row
+			count = 0;
+			for column in row:
+				s = column.strip();
+				
+				row_new[count] = s
+				if '"' in row_new[count]:
+					row_new[count] = row_new[count].replace('"', "'")
+				count = count + 1
 			if line == 0:
 				return row
 
@@ -89,12 +97,12 @@ def getRows():
 		csv_reader = csv.reader(csvFile, delimiter=',')
 		line = 0;
 		rowCount = countRows()
-		print(rowCount)
 		
 		for row in csv_reader:
-			if line > 0 and line < rowCount-1:
+			if line > 0 and line <= rowCount:
 				rows.append(row)
 			line=line+1
+	log("rows found:"+str(len(rows)))
 	return rows
 			
 def replaceHeadersWithMappings():
@@ -104,17 +112,36 @@ def replaceHeadersWithMappings():
 			if h == m.get('name'):
 				replaceHeader(h, m.get('value'))
 				
+def checkValid(headers, row):
+	i=0
+	for column in row:
+		if headers[i] == "login":
+			if column == "" or column == None or column == ",":
+				return False
+		if headers[i] == "firstName":
+			if column == "" or column == None or column == ",":
+				return False
+		if headers[i] == "lastName":
+			if column == "" or column == None or column == ",":
+				return False
+		if headers[i] == "email":
+			if column == "" or column == None or column == ",":
+				return False
+		i = i + 1;
+	return True
+
 def createProfile(headers, row):
 	profile = {}
 	i=0
-	while i < len(row):
-		column = row[i]
+	if not checkValid(headers, row):
+		return None
+	for column in row:
 		if column != "" and column != None:
-			profile[headers[i]] = column
+			column = column.strip();
+			if column == "TRUE" or column == "FALSE":
+				column = column.lower()
+			profile[headers[i]] = column	
 		i = i + 1
-	profile = {"profile":profile}
-	profile = str(profile)
-	profile = profile.replace("'", '"')
 	return profile
 	
 def createUser(baseurl, apitoken, profile):
@@ -124,11 +151,66 @@ def createUser(baseurl, apitoken, profile):
 		'Authorization': "SSWS "+apitoken,
 		'cache-control': "no-cache",
 	}
+	profile = {"profile":profile}
+	profile = json.dumps(profile)
 
-	request = requests.post(baseurl+"/api/v1/users", headers=headers, params='"activate":"false"', data=profile)
+	request = requests.post(baseurl+"/api/v1/users?activate=false", headers=headers, data=str(profile))
 	if request.status_code != 200:
 		error = request.json()['errorSummary']
-		log("The user ["+profile+"] could not be created. Error:"+error)
+		causes = request.json()['errorCauses']
+		errorCauses = ""
+		for cause in causes:
+			errorCauses = errorCauses+cause['errorSummary']+","
+		if errorCauses != "":
+			errorCauses = errorCauses[0:errorCauses.rfind(",")]
+			errorCauses = ", Causes:"+errorCauses
+			
+		
+		log("The user ["+profile+"] could not be created. Error:"+error+errorCauses)
+		
+def updateUser(baseurl, apitoken, profile, id):
+	headers = {
+		'Accept': "application/json",
+		'Content-Type': "application/json",
+		'Authorization': "SSWS "+apitoken,
+		'cache-control': "no-cache",
+	}
+	profile = {"profile":profile}
+	profile = json.dumps(profile)
+
+	request = requests.post(baseurl+"/api/v1/users/"+id, headers=headers, data=str(profile))
+	if request.status_code != 200:
+		error = request.json()['errorSummary']
+		causes = request.json()['errorCauses']
+		errorCauses = ""
+		for cause in causes:
+			errorCauses = errorCauses+cause['errorSummary']+","
+		if errorCauses != "":
+			errorCauses = errorCauses[0:errorCauses.rfind(",")]
+			errorCauses = ", Causes:"+errorCauses
+			
+		log("The user ["+profile+"] could not be updated. Error:"+error+errorCauses)
+		
+def userExist(baseurl, apitoken, profile):
+	headers = {
+		'Accept': "application/json",
+		'Content-Type': "application/json",
+		'Authorization': "SSWS "+apitoken,
+		'cache-control': "no-cache",
+	}
+	
+	request = requests.get(baseurl+"/api/v1/users?q="+profile.get('login'), headers=headers)
+	if request.status_code == 200:
+		json = request.json()
+		for user in json:
+			if user['profile']['login'].lower() == profile.get('login').lower():
+				return user['id']
+				
+		return None
+	else:
+		log("unable to check for users:"+str(request.json()))
+		raise Exception("Unable to check if users exist")
+	return None
 	
 ########Main#########
 	
@@ -153,8 +235,13 @@ else:
 	replaceHeadersWithMappings();
 	for row in rows:
 		profile = createProfile(headers, row)
-		createUser(oktaUrl, apiToken, profile)
-		
+		if profile != None:
+			id = userExist(oktaUrl, apiToken, profile)
+			if id != None:
+				updateUser(oktaUrl, apiToken, profile, id)
+			else:
+				createUser(oktaUrl, apiToken, profile)
+				
 log("_____Program Ended ("+str(date.datetime.now())+")_____")
 
 #######################
