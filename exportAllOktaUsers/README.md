@@ -17,7 +17,7 @@ You can choose what will replace the Mac only keys at the top of the script by c
 ## Export with Specific App Profiles
 
 **oktaExportAllUsers.py** will allow you to export the users with a specific app profile. Add *'appId'* to the **config.json** and add the *app ID* as it's value. The app profile of the user will show up to the right of the of the *'app'* column.
-If the user does not have a profile with the app then the app column will be **empty** otherwise it will be filled with the **appId** of the app it is associated with.
+If the user does not have a profile with the app then the app column will be **empty** otherwise it will be filled with the **externalId** of the user it is associated with.
 You must set *'appId'* in the **config.json** otherwise the following error will be display: **'Your config has not been set correctly'**.
 If you alter the config incorrectly the error above can also be displayed. Try redownloading the **config.json** if you are persistantly getting this error.
-If you want to use this script to export all users then leave *'appId'* value in the config to *''* and it will work.
+If you want to use this script to export all users then leave *'appId'* value in the config to *''* and it will work however you will get an error claiming that the appId could not be get. For effcient retrival of all users; use **oktaExportAllUsers.py**.
