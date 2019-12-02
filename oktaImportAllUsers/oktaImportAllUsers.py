@@ -4,6 +4,7 @@ import json
 import csv
 import xml.etree.ElementTree as tree
 import os
+import time
 import datetime as date
 	
 logBool = None
@@ -152,6 +153,21 @@ def createProfile(headers, row):
 		i = i + 1
 	return profile
 	
+def logError(json, profile, action):
+	error = json['errorSummary']
+	causes = json['errorCauses']
+	errorCauses = ""
+	for cause in causes:
+		errorCauses = errorCauses+cause['errorSummary']+","
+	if errorCauses != "":
+		errorCauses = errorCauses[0:errorCauses.rfind(",")]
+		errorCauses = ", Causes:"+errorCauses
+	log("The user ["+profile+"] could not be "+action+". Error:"+error+errorCauses)
+	
+def rateLimit():
+	log("Rate limit has been hit. Waiting 10 seconds and retrying.")
+	time.sleep(10)
+	
 def createUser(baseurl, apitoken, profile):
 	headers = {
 		'Accept': "application/json",
@@ -162,19 +178,15 @@ def createUser(baseurl, apitoken, profile):
 	profile = {"profile":profile}
 	profile = json.dumps(profile)
 
-	request = requests.post(baseurl+"/api/v1/users?activate=false", headers=headers, data=str(profile))
-	if request.status_code != 200:
-		error = request.json()['errorSummary']
-		causes = request.json()['errorCauses']
-		errorCauses = ""
-		for cause in causes:
-			errorCauses = errorCauses+cause['errorSummary']+","
-		if errorCauses != "":
-			errorCauses = errorCauses[0:errorCauses.rfind(",")]
-			errorCauses = ", Causes:"+errorCauses
-			
-		
-		log("The user ["+profile+"] could not be created. Error:"+error+errorCauses)
+	while True:
+		request = requests.post(baseurl+"/api/v1/users?activate=false", headers=headers, data=str(profile))
+		if request.status_code == 429:
+			rateLimit()
+		elif request.status_code != 200:
+			logError(request.json(), profile, "created")
+			break
+		else:
+			break;
 		
 def updateUser(baseurl, apitoken, profile, id):
 	headers = {
@@ -186,18 +198,15 @@ def updateUser(baseurl, apitoken, profile, id):
 	profile = {"profile":profile}
 	profile = json.dumps(profile)
 
-	request = requests.post(baseurl+"/api/v1/users/"+id, headers=headers, data=str(profile))
-	if request.status_code != 200:
-		error = request.json()['errorSummary']
-		causes = request.json()['errorCauses']
-		errorCauses = ""
-		for cause in causes:
-			errorCauses = errorCauses+cause['errorSummary']+","
-		if errorCauses != "":
-			errorCauses = errorCauses[0:errorCauses.rfind(",")]
-			errorCauses = ", Causes:"+errorCauses
-			
-		log("The user ["+profile+"] could not be updated. Error:"+error+errorCauses)
+	while True:
+		request = requests.post(baseurl+"/api/v1/users/"+id, headers=headers, data=str(profile))
+		if request.status_code == 429:
+			rateLimit()
+		elif request.status_code != 200:
+			logError(request.json(), profile, "updated")
+			break;
+		else:
+			break
 		
 def userExist(baseurl, apitoken, profile):
 	headers = {
@@ -206,18 +215,22 @@ def userExist(baseurl, apitoken, profile):
 		'Authorization': "SSWS "+apitoken,
 		'cache-control': "no-cache",
 	}
-	
-	request = requests.get(baseurl+"/api/v1/users?q="+profile.get('login'), headers=headers)
-	if request.status_code == 200:
-		json = request.json()
-		for user in json:
-			if user['profile']['login'].lower() == profile.get('login').lower():
-				return user['id']
-				
-		return None
-	else:
-		log("unable to check for users:"+str(request.json()))
-		raise Exception("Unable to check if users exist")
+	while True:
+		request = requests.get(baseurl+"/api/v1/users?q="+profile.get('login'), headers=headers)
+		
+		if request.status_code == 429:
+			rateLimit()
+		elif request.status_code != 200:
+			logError(request.json(), profile, "found")
+			raise Exception("Unable to check if the user exists")
+			break;
+		else:
+			json = request.json()
+			for user in json:
+				if user['profile']['login'].lower() == profile.get('login').lower():
+					return user['id']
+			return None;
+			
 	return None
 	
 ########Main#########
