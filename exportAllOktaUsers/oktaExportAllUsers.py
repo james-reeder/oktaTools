@@ -4,6 +4,8 @@ import pprint
 import json
 import csv
 
+replacementKey = "'"
+
 # Import Okta Config Details
 with open('config.json') as json_file:
     configFileData = json.load(json_file)
@@ -70,6 +72,14 @@ with open('allOktaUsers.csv', 'w', newline='') as csvFile:
     writer = csv.writer(csvFile)
     writer.writerow(masterProfileHeadersList)
     for user in userListNoKeys:
+        #if replacement code from mac is fround
+        if str(user).find("�") != -1:
+            #replace all instances with key as defined at top
+            for i, u in enumerate(user):
+                if u != None:
+                    if u.find("�") != -1:
+                        u = u.replace("�", replacementKey)
+                        user[i] = u;
         writer.writerow(user)
     totalUsersRow="Total Users: ",len(userslist)
     writer.writerow(totalUsersRow)

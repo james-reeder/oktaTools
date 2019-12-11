@@ -1,0 +1,13 @@
+<config>
+	<oktaUrl>https://test.oktapreview.com</oktaUrl>
+	<oktaToken>000000000000</oktaToken>
+	<ignore>
+		<user>abroadhurst@distology.com</user>
+		<group>Admins</group>
+		<rule>ToAdminGroup</rule>
+		<app>0oanskx4b0ML1i6Hq0h7</app>
+		<idp>MainProfileMaster</idp>
+		<server>default</server>
+		<zone>Main Site</zone>
+	</ignore>
+</config>
